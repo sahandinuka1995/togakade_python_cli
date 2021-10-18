@@ -6,8 +6,79 @@ __db_path__ = "db"
 __users_folder__ = "db/users"
 
 
+class Item:
+
+    def addNewItem(self):
+        print('Add New Item')
+
+    def viewItem(self):
+        print('View Item')
+
+    def viewAllItem(self):
+        print('View All Item')
+
+    def deleteItem(self):
+        print('Delete Item')
+
+
+class Order:
+
+    def viewOrder(self):
+        print('View Order')
+
+    def viewAllOrders(self):
+        print('View All Orders')
+
+    def completeOrder(self):
+        print('Complete Order')
+
+
+def adminMenu():
+    header('Admin Menu')
+    print('-+-+-+-+-+- Item -+-+-+-+-+-\n* Add New - (NI)\n* View - (VI)\n* View All - (AI)\n* Delete - (DI)\n\n')
+    print('-+-+-+-+-+- Order -+-+-+-+-+-\n* View - (VO)\n* View All - (AO)\n* Mark Complete - (CO)\n')
+
+    option = input('Enter option: ')
+    item = Item()
+    order = Order()
+
+    if option == 'NI':
+        item.addNewItem()
+    elif option == 'VI':
+        item.viewItem()
+    elif option == 'AI':
+        item.viewAllItem()
+    elif option == 'DI':
+        item.deleteItem()
+    elif option == 'VO':
+        order.viewOrder()
+    elif option == 'AO':
+        order.viewAllOrders()
+    elif option == 'CO':
+        order.completeOrder()
+
+
+def customerMenu():
+    header('Customer Menu')
+
+
 def login():
-    print('Login def')
+    username = validateInput(input('Username: '), 'username')
+    password = validateInput(getpass('Password: '), 'password')
+
+    try:
+        with open(__users_folder__ + '/' + username + '.db', 'r') as user_folder:
+            data = json.load(user_folder)
+    except FileNotFoundError:
+        toast('Oops!', '-> User not found')
+    else:
+        if data['password'] != password:
+            toast('Oops!', 'Wrong password')
+        else:
+            if data['role'] == 'admin':
+                adminMenu()
+            elif data['role'] == 'customer':
+                customerMenu()
 
 
 def register():
@@ -24,6 +95,7 @@ def register():
 
     if saveUser(username, _data_):
         toast('Congratulations!', '-> User account successfully created')
+        main()
     else:
         toast('Oops!', '-> Something went wrong')
 
@@ -49,7 +121,6 @@ def saveUser(username, data):
 def validateInput(val, text):
     if val == '':
         print('Please enter ' + text)
-        register()
         return ''
     else:
         return val
@@ -76,6 +147,3 @@ def main():
 
 
 main()
-
-# username = input('Enter username: ')
-# password = getpass('Enter password: ')
