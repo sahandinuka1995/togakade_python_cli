@@ -4,12 +4,30 @@ import json
 
 __db_path__ = "db"
 __users_folder__ = "db/users"
+__item_folder__ = "db/items"
 
 
 class Item:
 
     def addNewItem(self):
-        print('Add New Item')
+        code = input('Item Code: ')
+        name = input('Item Name: ')
+        price = input('Item Price: ')
+        sellingPrice = input('Item Selling Price: ')
+
+        if not os.path.exists(__item_folder__):
+            os.mkdir(__item_folder__)
+
+        _data_ = {
+            "code": code,
+            "name": name,
+            "price": price,
+            "sellingPrice": sellingPrice
+        }
+
+        with open(__item_folder__ + '/' + code + '.db', 'w+') as item_folder:
+            json.dump(_data_, item_folder)
+            toast('Congratulations!', 'Item saved successfully')
 
     def viewItem(self):
         print('View Item')
@@ -135,6 +153,10 @@ def header(title, subTitle=''):
 def main():
     os.system('color 2')
     header('Welcome to Thogakade')
+
+    if not os.path.exists(__db_path__):
+        os.mkdir(__db_path__)
+
     print('* To Login - (L)\n* To Register - (R)\n')
     loginType = input('Enter option: ')
 
