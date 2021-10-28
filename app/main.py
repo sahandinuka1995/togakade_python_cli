@@ -1,6 +1,7 @@
 from getpass import getpass
 import os
 import json
+import glob
 
 __db_path__ = "db"
 __users_folder__ = "db/users"
@@ -8,6 +9,11 @@ __item_folder__ = "db/items"
 
 
 class Item:
+
+    def goBack(self):
+        val = input('Go Back ? (Y/N): ')
+        if val == 'Y' or val == 'y':
+            User().adminMenu()
 
     def addNewItem(self):
         code = input('Item Code: ')
@@ -30,13 +36,32 @@ class Item:
             toast('Congratulations!', 'Item saved successfully')
 
     def viewItem(self):
-        print('View Item')
+        code = input('Enter Item Code: ')
+
+        with open(__item_folder__ + '/' + code + '.db', 'r') as item_folder:
+            item = json.load(item_folder)
+            header('View Item: ' + item['code'])
+            print('|  Code: ' + item['code']
+                  + '\n|  Name: ' + item['name']
+                  + '\n|  Price: ' + item['price']
+                  + '\n|  Selling Price: ' + item['sellingPrice'] + '\n')
+            self.goBack()
 
     def viewAllItem(self):
-        print('View All Item')
+        header('View All Items')
+
+        allItems = os.listdir(__item_folder__)
+        print(allItems, '\n')
+
+        self.viewItem()
 
     def deleteItem(self):
-        print('Delete Item')
+        header('Delete Item')
+
+        item = input('Enter Item Code: ')
+        os.remove(__item_folder__+'/'+item+'.db')
+        toast('Congratulations!', 'Item deleted successfully')
+        self.goBack()
 
 
 class Order:
@@ -51,108 +76,106 @@ class Order:
         print('Complete Order')
 
 
-def adminMenu():
-    header('Admin Menu')
-    print('-+-+-+-+-+- Item -+-+-+-+-+-\n* Add New - (NI)\n* View - (VI)\n* View All - (AI)\n* Delete - (DI)\n\n')
-    print('-+-+-+-+-+- Order -+-+-+-+-+-\n* View - (VO)\n* View All - (AO)\n* Mark Complete - (CO)\n')
+class User:
 
-    option = input('Enter option: ')
-    item = Item()
-    order = Order()
-
-    if option == 'NI':
-        item.addNewItem()
-    elif option == 'VI':
-        item.viewItem()
-    elif option == 'AI':
-        item.viewAllItem()
-    elif option == 'DI':
-        item.deleteItem()
-    elif option == 'VO':
-        order.viewOrder()
-    elif option == 'AO':
-        order.viewAllOrders()
-    elif option == 'CO':
-        order.completeOrder()
-
-
-def customerMenu():
-    header('Customer Menu')
-
-
-def login():
-    username = validateInput(input('Username: '), 'username')
-    password = validateInput(getpass('Password: '), 'password')
-
-    try:
-        with open(__users_folder__ + '/' + username + '.db', 'r') as user_folder:
-            data = json.load(user_folder)
-    except FileNotFoundError:
-        toast('Oops!', '-> User not found')
-    else:
-        if data['password'] != password:
-            toast('Oops!', 'Wrong password')
+    def validateInput(self, val, text):
+        if val == '':
+            print('Please enter ' + text)
+            return ''
         else:
-            if data['role'] == 'admin':
-                adminMenu()
-            elif data['role'] == 'customer':
-                customerMenu()
+            return val
 
+    def adminMenu(self):
+        header('Admin Menu')
+        print('-+-+-+-+-+- Item -+-+-+-+-+-\n* Add New - (NI)\n* View - (VI)\n* View All - (AI)\n* Delete - (DI)\n\n')
+        print('-+-+-+-+-+- Order -+-+-+-+-+-\n* View - (VO)\n* View All - (AO)\n* Mark Complete - (CO)\n')
 
-def register():
-    header('New user registration', 'Please fill all details')
-    username = validateInput(input('Username: '), 'username')
-    password = validateInput(getpass('Password: '), 'password')
-    role = validateInput(input('Role: '), 'role')
+        option = input('Enter option: ')
+        item = Item()
+        order = Order()
 
-    _data_ = {
-        "username": username,
-        "password": password,
-        "role": role
-    }
+        if option == 'NI' or option == 'ni':
+            item.addNewItem()
+        elif option == 'VI' or option == 'vi':
+            item.viewItem()
+        elif option == 'AI' or option == 'ai':
+            item.viewAllItem()
+        elif option == 'DI' or option == 'di':
+            item.deleteItem()
+        elif option == 'VO' or option == 'vo':
+            order.viewOrder()
+        elif option == 'AO' or option == 'ao':
+            order.viewAllOrders()
+        elif option == 'CO' or option == 'co':
+            order.completeOrder()
 
-    if saveUser(username, _data_):
-        toast('Congratulations!', '-> User account successfully created')
-        main()
-    else:
-        toast('Oops!', '-> Something went wrong')
+    def customerMenu(self):
+        header('Customer Menu')
+
+    def login(self):
+        username = self.validateInput(input('Username: '), 'username')
+        password = self.validateInput(getpass('Password: '), 'password')
+
+        try:
+            with open(__users_folder__ + '/' + username + '.db', 'r') as user_folder:
+                data = json.load(user_folder)
+        except FileNotFoundError:
+            toast('Oops!', '-> User not found')
+        else:
+            if data['password'] != password:
+                toast('Oops!', 'Wrong password')
+            else:
+                if data['role'] == 'admin':
+                    self.adminMenu()
+                elif data['role'] == 'customer':
+                    self.customerMenu()
+
+    def register(self):
+        header('New user registration', 'Please fill all details')
+        username = self.validateInput(input('Username: '), 'username')
+        password = self.validateInput(getpass('Password: '), 'password')
+        role = self.validateInput(input('Role: '), 'role')
+
+        _data_ = {
+            "username": username,
+            "password": password,
+            "role": role
+        }
+
+        if self.saveUser(username, _data_):
+            toast('Congratulations!', '-> User account successfully created')
+            main()
+        else:
+            toast('Oops!', '-> Something went wrong')
+
+        def saveUser(un, data):
+            if not os.path.exists(__db_path__):
+                os.mkdir(__db_path__)
+
+            if not os.path.exists(__users_folder__):
+                os.mkdir(__users_folder__)
+
+            with open(__users_folder__ + '/' + un + '.db', 'w+') as user_folder:
+                json.dump(data, user_folder)
+                return True
+
+        return False
 
 
 def toast(title, content):
     print('\n*** ' + title + ' ***\n' + content)
 
 
-def saveUser(username, data):
-    if not os.path.exists(__db_path__):
-        os.mkdir(__db_path__)
-
-    if not os.path.exists(__users_folder__):
-        os.mkdir(__users_folder__)
-
-    with open(__users_folder__ + '/' + username + '.db', 'w+') as user_folder:
-        json.dump(data, user_folder)
-        return True
-
-    return False
-
-
-def validateInput(val, text):
-    if val == '':
-        print('Please enter ' + text)
-        return ''
-    else:
-        return val
-
-
 def header(title, subTitle=''):
     print("\n===========================================\n"
           " " + title + " \n"
-                        "===========================================\n" + subTitle + '\n')
+                        "===========================================\n" + subTitle)
 
 
 def main():
     os.system('color 2')
     header('Welcome to Thogakade')
+    user = User()
 
     if not os.path.exists(__db_path__):
         os.mkdir(__db_path__)
@@ -160,10 +183,10 @@ def main():
     print('* To Login - (L)\n* To Register - (R)\n')
     loginType = input('Enter option: ')
 
-    if loginType == 'L':
-        login()
-    elif loginType == 'R':
-        register()
+    if loginType == 'L' or loginType == 'l':
+        user.login()
+    elif loginType == 'R' or loginType == 'r':
+        user.register()
     else:
         print('Oops! Wrong command')
 
