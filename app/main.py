@@ -2,6 +2,7 @@ from getpass import getpass
 import os
 import json
 import glob
+import sys
 
 __db_path__ = "db"
 __users_folder__ = "db/users"
@@ -9,11 +10,6 @@ __item_folder__ = "db/items"
 
 
 class Item:
-
-    def goBack(self):
-        val = input('Go Back ? (Y/N): ')
-        if val == 'Y' or val == 'y':
-            User().adminMenu()
 
     def addNewItem(self):
         code = input('Item Code: ')
@@ -31,37 +27,54 @@ class Item:
             "sellingPrice": sellingPrice
         }
 
-        with open(__item_folder__ + '/' + code + '.db', 'w+') as item_folder:
-            json.dump(_data_, item_folder)
+        try:
+            with open(__item_folder__ + '/' + code + '.db', 'w+') as item_folder:
+                json.dump(_data_, item_folder)
             toast('Congratulations!', 'Item saved successfully')
+        except:
+            toast('Oops!', 'Can\'t save Item')
 
     def viewItem(self):
+        print('* To Exit - (exit)')
         code = input('Enter Item Code: ')
 
-        with open(__item_folder__ + '/' + code + '.db', 'r') as item_folder:
-            item = json.load(item_folder)
-            header('View Item: ' + item['code'])
-            print('|  Code: ' + item['code']
-                  + '\n|  Name: ' + item['name']
-                  + '\n|  Price: ' + item['price']
-                  + '\n|  Selling Price: ' + item['sellingPrice'] + '\n')
-            self.goBack()
+        if code == 'exit' or code == 'Exit' or code == 'EXIT':
+            sys.exit()
+        else:
+            try:
+                with open(__item_folder__ + '/' + code + '.db', 'r') as item_folder:
+                    item = json.load(item_folder)
+                header('View Item: ' + item['code'])
+                print('|  Code: ' + item['code']
+                      + '\n|  Name: ' + item['name']
+                      + '\n|  Price: ' + item['price']
+                      + '\n|  Selling Price: ' + item['sellingPrice'] + '\n')
+                User().adminMenu()
+            except:
+                toast('Oops!', 'No item found with "' + code + '"')
+                self.viewItem()
 
     def viewAllItem(self):
         header('View All Items')
-
         allItems = os.listdir(__item_folder__)
         print(allItems, '\n')
-
         self.viewItem()
 
     def deleteItem(self):
         header('Delete Item')
-
+        print('* Go Back - (B)\n')
         item = input('Enter Item Code: ')
-        os.remove(__item_folder__+'/'+item+'.db')
-        toast('Congratulations!', 'Item deleted successfully')
-        self.goBack()
+
+        if item == 'b' or item == 'B':
+            User().adminMenu()
+        else:
+            try:
+                os.remove(__item_folder__ + '/' + item + '.db')
+                toast('Congratulations!', 'Item deleted successfully')
+                User().adminMenu()
+            except:
+                print('Can\'t delete "' + item + '" or item not found')
+                Item().deleteItem()
 
 
 class Order:
@@ -89,6 +102,7 @@ class User:
         header('Admin Menu')
         print('-+-+-+-+-+- Item -+-+-+-+-+-\n* Add New - (NI)\n* View - (VI)\n* View All - (AI)\n* Delete - (DI)\n\n')
         print('-+-+-+-+-+- Order -+-+-+-+-+-\n* View - (VO)\n* View All - (AO)\n* Mark Complete - (CO)\n')
+        print('\n* To Exit - (exit)')
 
         option = input('Enter option: ')
         item = Item()
@@ -108,6 +122,11 @@ class User:
             order.viewAllOrders()
         elif option == 'CO' or option == 'co':
             order.completeOrder()
+        elif option == 'exit' or option == 'Exit' or option == 'EXIT':
+            exitProgram()
+        else:
+            print('Oops! Wrong command')
+            User().adminMenu()
 
     def customerMenu(self):
         header('Customer Menu')
@@ -163,7 +182,7 @@ class User:
 
 
 def toast(title, content):
-    print('\n*** ' + title + ' ***\n' + content)
+    print('\n*** ' + title + ' ***\n' + content + '\n')
 
 
 def header(title, subTitle=''):
@@ -180,15 +199,22 @@ def main():
     if not os.path.exists(__db_path__):
         os.mkdir(__db_path__)
 
-    print('* To Login - (L)\n* To Register - (R)\n')
+    print('* To Login - (L)\n* To Register - (R)\n* To Exit - (exit)\n')
     loginType = input('Enter option: ')
 
     if loginType == 'L' or loginType == 'l':
         user.login()
     elif loginType == 'R' or loginType == 'r':
         user.register()
+    elif loginType == 'exit' or loginType == 'Exit' or loginType == 'EXIT':
+        exitProgram()
     else:
         print('Oops! Wrong command')
+        main()
+
+
+def exitProgram():
+    sys.exit()
 
 
 main()
