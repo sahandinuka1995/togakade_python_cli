@@ -30,9 +30,11 @@ class Item:
         try:
             with open(__item_folder__ + '/' + code + '.db', 'w+') as item_folder:
                 json.dump(_data_, item_folder)
-            toast('Congratulations!', 'Item saved successfully')
+            toast('Congratulations!', 'Item saved successfully\n')
         except:
-            toast('Oops!', 'Can\'t save Item')
+            toast('Oops!', 'Can\'t save Item\n')
+
+        User().adminMenu()
 
     def viewItem(self):
         print('* To Exit - (exit)')
@@ -76,8 +78,33 @@ class Item:
                 print('Can\'t delete "' + item + '" or item not found')
                 Item().deleteItem()
 
+    def viewAllCustomerItem(self, type):
+        header('View All Items')
+        allItems = os.listdir(__item_folder__)
+        print(allItems, '\n')
+        User().customerMenu()
+
+    def pickItem(self):
+        header('View All Items')
+        allItems = os.listdir(__item_folder__)
+        print(allItems, '\n')
+
+        code = input('Enter item name: ')
+        try:
+            with open(__item_folder__ + '/' + code + '.db', 'r') as item_folder:
+                item = json.load(item_folder)
+                print(item)
+        except:
+            print('Can\'t pick item ' + item)
+
+    def addToList(self, item):
+        print(item)
+
 
 class Order:
+
+    def pickItem(self):
+        Item().pickItem()
 
     def viewOrder(self):
         print('View Order')
@@ -130,6 +157,23 @@ class User:
 
     def customerMenu(self):
         header('Customer Menu')
+        print('-+-+-+-+-+- Item -+-+-+-+-+-\n* View All - (AI)\n\n')
+        print('-+-+-+-+-+- Order -+-+-+-+-+-\n* Pick Item - (PI)\n* Remove Item - (RI)\n* View Items - (VI)\n')
+        print('\n* To Exit - (exit)')
+
+        option = input('Enter option: ')
+        item = Item()
+        order = Order()
+
+        if option == 'AI' or option == 'ai':
+            item.viewAllCustomerItem()
+        elif option == 'PI' or option == 'pi':
+            order.pickItem()
+        elif option == 'exit' or option == 'Exit' or option == 'EXIT':
+            exitProgram()
+        else:
+            print('Oops! Wrong command')
+            User().adminMenu()
 
     def login(self):
         username = self.validateInput(input('Username: '), 'username')
@@ -167,16 +211,19 @@ class User:
         else:
             toast('Oops!', '-> Something went wrong')
 
-        def saveUser(un, data):
-            if not os.path.exists(__db_path__):
-                os.mkdir(__db_path__)
+    def saveUser(self, un, data):
+        if not os.path.exists(__db_path__):
+            os.mkdir(__db_path__)
 
-            if not os.path.exists(__users_folder__):
-                os.mkdir(__users_folder__)
+        if not os.path.exists(__users_folder__):
+            os.mkdir(__users_folder__)
 
+        try:
             with open(__users_folder__ + '/' + un + '.db', 'w+') as user_folder:
                 json.dump(data, user_folder)
-                return True
+            return True
+        except:
+            toast('Oops!', 'Something went wrong')
 
         return False
 
