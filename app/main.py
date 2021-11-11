@@ -3,10 +3,13 @@ import os
 import json
 import glob
 import sys
+import string
+import random
 
 __db_path__ = "db"
 __users_folder__ = "db/users"
 __item_folder__ = "db/items"
+__order_folder__ = "db/order"
 
 
 class Item:
@@ -84,36 +87,59 @@ class Item:
         print(allItems, '\n')
         User().customerMenu()
 
+
+class Order:
+    itemList = []
+
     def pickItem(self):
         header('View All Items')
         allItems = os.listdir(__item_folder__)
         print(allItems, '\n')
+        print('* Go Back - (B)\n')
 
         code = input('Enter item name: ')
-        try:
-            with open(__item_folder__ + '/' + code + '.db', 'r') as item_folder:
-                item = json.load(item_folder)
-                print(item)
-        except:
-            print('Can\'t pick item ' + item)
-
-    def addToList(self, item):
-        print(item)
-
-
-class Order:
-
-    def pickItem(self):
-        Item().pickItem()
+        if code == 'b' or code == 'B':
+            self.saveList(self.itemList)
+        else:
+            try:
+                with open(__item_folder__ + '/' + code + '.db', 'r') as item_folder:
+                    item = json.load(item_folder)
+                self.addToList(item)
+            except:
+                print("Can\'t pick item " + code)
+                self.pickItem()
 
     def viewOrder(self):
-        print('View Order')
+        try:
+            with open(__order_folder__ + '/' + getCurrentUser() + '.db', 'r') as order_folder:
+                orderList = json.load(order_folder)
+                for item in orderList:
+                    print(item)
+        except:
+            print("Can\'t view orders")
 
     def viewAllOrders(self):
         print('View All Orders')
 
     def completeOrder(self):
         print('Complete Order')
+
+    def addToList(self, item):
+        self.itemList.append(item)
+        toast('Success!', 'Item added to list')
+        self.pickItem()
+
+    def saveList(self, itemList):
+        if not os.path.exists(__order_folder__):
+            os.mkdir(__order_folder__)
+
+        try:
+            with open(__order_folder__ + '/' + getCurrentUser() + '.db', 'w+') as order_folder:
+                json.dump(itemList, order_folder)
+            toast('Congratulations!', 'Order saved successfully\n')
+            User().customerMenu()
+        except:
+            print("Can\'t save Order")
 
 
 class User:
@@ -169,6 +195,8 @@ class User:
             item.viewAllCustomerItem()
         elif option == 'PI' or option == 'pi':
             order.pickItem()
+        elif option == 'VI' or option == 'vi':
+            order.viewOrder()
         elif option == 'exit' or option == 'Exit' or option == 'EXIT':
             exitProgram()
         else:
@@ -188,10 +216,15 @@ class User:
             if data['password'] != password:
                 toast('Oops!', 'Wrong password')
             else:
+                self.setSession(data)
                 if data['role'] == 'admin':
                     self.adminMenu()
                 elif data['role'] == 'customer':
                     self.customerMenu()
+
+    def setSession(self, user):
+        with open('db/session.db', 'w+') as db_folder:
+            json.dump(user, db_folder)
 
     def register(self):
         header('New user registration', 'Please fill all details')
@@ -236,6 +269,15 @@ def header(title, subTitle=''):
     print("\n===========================================\n"
           " " + title + " \n"
                         "===========================================\n" + subTitle)
+
+
+def getCurrentUser():
+    try:
+        with open('db/session.db', 'r') as session:
+            session = json.load(session)
+            return session["username"]
+    except:
+        print('Something went wrong')
 
 
 def main():
