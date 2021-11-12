@@ -1,0 +1,25 @@
+
+================
+ Authentication
+================
+
+1. Register
+2. Login
+
+================
+ Manage Items
+================
+
+1. Add item
+2. View all items
+3. View single item
+4. Delete item
+
+================
+ Order
+================
+
+1. Add items to list
+2. Remove items from list
+3. Make order as complete
+4. View orders

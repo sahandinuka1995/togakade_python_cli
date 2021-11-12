@@ -81,11 +81,14 @@ class Item:
                 print('Can\'t delete "' + item + '" or item not found')
                 Item().deleteItem()
 
-    def viewAllCustomerItem(self, type):
-        header('View All Items')
-        allItems = os.listdir(__item_folder__)
-        print(allItems, '\n')
-        User().customerMenu()
+    def viewAllCustomerItem(self):
+        try:
+            header('View All Items')
+            allItems = os.listdir(__item_folder__)
+            print(allItems, '\n')
+            User().customerMenu()
+        except:
+            print('Something went wrong')
 
 
 class Order:
@@ -115,11 +118,18 @@ class Order:
                 orderList = json.load(order_folder)
                 for item in orderList:
                     print(item)
+            User().customerMenu()
         except:
             print("Can\'t view orders")
 
-    def viewAllOrders(self):
-        print('View All Orders')
+    def removeOrder(self):
+        try:
+            os.remove(__order_folder__ + '/' + getCurrentUser() + '.db')
+            toast('Congratulations!', 'Order deleted successfully')
+            User().customerMenu()
+        except:
+            print('Can\'t delete order')
+            User().customerMenu()
 
     def completeOrder(self):
         print('Complete Order')
@@ -141,6 +151,29 @@ class Order:
         except:
             print("Can\'t save Order")
 
+    def viewAllOrders(self):
+        try:
+            allItems = os.listdir(__order_folder__)
+            print(allItems)
+            User().adminMenu()
+        except:
+            print('Something went wrong')
+            User().adminMenu()
+
+    def viewOrderAdmin(self):
+        allItems = os.listdir(__order_folder__)
+        print(allItems, "\n")
+
+        order = input('Enter order username :')
+        try:
+            with open(__order_folder__ + '/' + order + '.db', 'r') as order_folder:
+                orderList = json.load(order_folder)
+                print(orderList)
+                User().adminMenu()
+        except:
+            print("Order not found!")
+            self.viewOrderAdmin()
+
 
 class User:
 
@@ -154,7 +187,7 @@ class User:
     def adminMenu(self):
         header('Admin Menu')
         print('-+-+-+-+-+- Item -+-+-+-+-+-\n* Add New - (NI)\n* View - (VI)\n* View All - (AI)\n* Delete - (DI)\n\n')
-        print('-+-+-+-+-+- Order -+-+-+-+-+-\n* View - (VO)\n* View All - (AO)\n* Mark Complete - (CO)\n')
+        print('-+-+-+-+-+- Order -+-+-+-+-+-\n* View All - (AO)\n* Mark Complete - (CO)\n')
         print('\n* To Exit - (exit)')
 
         option = input('Enter option: ')
@@ -169,10 +202,8 @@ class User:
             item.viewAllItem()
         elif option == 'DI' or option == 'di':
             item.deleteItem()
-        elif option == 'VO' or option == 'vo':
-            order.viewOrder()
         elif option == 'AO' or option == 'ao':
-            order.viewAllOrders()
+            order.viewOrderAdmin()
         elif option == 'CO' or option == 'co':
             order.completeOrder()
         elif option == 'exit' or option == 'Exit' or option == 'EXIT':
@@ -197,6 +228,8 @@ class User:
             order.pickItem()
         elif option == 'VI' or option == 'vi':
             order.viewOrder()
+        elif option == 'RI' or option == 'ri':
+            order.removeOrder()
         elif option == 'exit' or option == 'Exit' or option == 'EXIT':
             exitProgram()
         else:
